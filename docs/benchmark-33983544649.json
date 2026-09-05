@@ -1,0 +1,29 @@
+{
+  "measured_at_utc": "2026-09-05T18:17:42Z",
+  "environment": {
+    "os": "Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+    "python": "3.12.14",
+    "logical_cpus": 4,
+    "github_run_id": "33983544649",
+    "database": "PostgreSQL",
+    "queue": "Redis"
+  },
+  "jobs": 100,
+  "configured_workers": 8,
+  "workers_observed": 8,
+  "workload": "90% SHA-256 x1000, 10% deliberate fail-once jobs; all normal priority",
+  "succeeded": 100,
+  "terminal_failures": 0,
+  "attempts": 110,
+  "deliberate_retry_jobs": 10,
+  "retry_jobs_recovered": 10,
+  "retry_recovery_percent": 100.0,
+  "submit_seconds": 0.307,
+  "drain_seconds": 25.228,
+  "end_to_end_seconds": 25.535,
+  "drain_jobs_per_second": 3.964,
+  "end_to_end_jobs_per_second": 3.916,
+  "mean_job_latency_seconds": 14.535,
+  "p95_job_latency_seconds": 24.71,
+  "method": "Direct service submission, then worker process startup and drain; excludes HTTP and network ingress."
+}

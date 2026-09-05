@@ -1,5 +1,7 @@
 # TaskForge
 
+[![Test and build](https://github.com/jdbartlett929/taskforge/actions/workflows/ci.yml/badge.svg)](https://github.com/jdbartlett929/taskforge/actions/workflows/ci.yml)
+
 A distributed job-processing backend with a small operations console. Python/FastAPI accepts bounded computational tasks; Redis orders ready work; PostgreSQL persists jobs, attempts, results, and the event history.
 
 **This is a backend project, not a simulated dashboard.** The console calls the same REST API that clients use. Jobs execute in isolated subprocesses. A separately labeled local preview is available when Docker is unavailable.
@@ -131,6 +133,8 @@ The workload is 90% SHA-256 ×1,000 and 10% fail-once tasks. Results include con
 
 See [BENCHMARKS.md](docs/BENCHMARKS.md). Never turn an unrun 10,000-job command into a measured resume claim.
 
+Verified baseline: **40 tests passed**, Docker Compose smoke test passed, and **100/100 jobs completed across 8 observed workers**, with **10/10 transient failures recovered**. Measured drain throughput was **3.964 jobs/s** on a shared 4-logical-CPU Linux runner, including per-job subprocess startup. See the linked measurement for workload and timing details.
+
 ## Local preview without Docker
 
 ```bash
@@ -148,4 +152,3 @@ Open http://127.0.0.1:8000 and click Connect with an empty key. This explicitly 
 This is an at-least-once processing system, not an exactly-once side-effect engine. Fencing protects job-state writes; a task calling an external service must use its own idempotency key. The bundled tasks have no external side effects.
 
 A single PostgreSQL/Redis deployment is not a highly available cluster. Strict priorities can starve low-priority work. API keys are shared workspace credentials, not user accounts or tenant isolation. The initial schema initializer is idempotent, but future schema changes need explicit migrations. See architecture and deployment notes before extending it.
-
