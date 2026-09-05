@@ -1,0 +1,74 @@
+name: taskforge
+x-app: &app
+  build: .
+  image: taskforge:local
+  init: true
+  restart: unless-stopped
+  environment: &environment
+    TASKFORGE_DATABASE_URL: postgresql+psycopg://taskforge:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/taskforge
+    TASKFORGE_REDIS_URL: redis://redis:6379/0
+    TASKFORGE_API_KEY: ${TASKFORGE_API_KEY:?Set TASKFORGE_API_KEY in .env}
+  depends_on:
+    postgres: {condition: service_healthy}
+    redis: {condition: service_healthy}
+    migrate: {condition: service_completed_successfully}
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+  read_only: true
+  tmpfs: [/tmp]
+  logging:
+    driver: json-file
+    options: {max-size: "10m", max-file: "3"}
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: taskforge
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: taskforge
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taskforge -d taskforge"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    command: [redis-server, --appendonly, "yes", --maxmemory, 256mb, --maxmemory-policy, noeviction]
+    volumes: [redis-data:/data]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  migrate:
+    build: .
+    image: taskforge:local
+    command: [python, -m, taskforge.db]
+    environment: *environment
+    depends_on:
+      postgres: {condition: service_healthy}
+    restart: "no"
+  api:
+    <<: *app
+    ports: ["127.0.0.1:8000:8000"]
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/ready', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    stop_grace_period: 15s
+  worker:
+    <<: *app
+    command: [python, -m, taskforge.worker]
+    stop_grace_period: 70s
+    mem_limit: 512m
+    cpus: 1
+
+volumes:
+  postgres-data:
+  redis-data:
+

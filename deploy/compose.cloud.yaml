@@ -1,0 +1,19 @@
+# Overlay: docker compose -f compose.yaml -f deploy/compose.cloud.yaml up -d --build --scale worker=4
+services:
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment:
+      DOMAIN: ${DOMAIN:?Set the domain with an A record pointing at the server}
+      ACME_EMAIL: ${ACME_EMAIL:?Set the certificate contact email}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      api: {condition: service_healthy}
+volumes:
+  caddy-data:
+  caddy-config:
+

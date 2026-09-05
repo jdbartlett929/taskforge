@@ -1,0 +1,11 @@
+{
+    email {$ACME_EMAIL}
+}
+{$DOMAIN} {
+    encode zstd gzip
+    request_body {
+        max_size 16KB
+    }
+    reverse_proxy api:8000
+}
+
